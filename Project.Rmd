@@ -1,7 +1,7 @@
 ---
-title: "Predicting activity quality"
+title: "Machine Learning Project - Predicting activity quality"
 fontsize: 5pt
-date: "Friday, Septempber 21, 2015"
+date: "September 21, 2015"
 output: html_document
 ---
 ```{r setenv, echo=FALSE, results='hide', warning=FALSE, message=FALSE}
@@ -36,17 +36,16 @@ testing <- monitor[-inTrain, ]
 ```
 The original data set has 160 variables and 19.622 observations. The training set has 11.776 observations and the test set has 7.846 observations.
 ```{r part_stat}
-kable(rbind(c("set","Observations","Variables"),
-            c("monitor",dim(monitor)),
-            c("training",dim(training)),
-            c("testing",dim(testing))),
-      format = "latex")
+rbind("monitor"=c("variables"=dim(monitor)[2],"observations"=dim(monitor)[1]),
+      "training"=c(dim(training)[2],dim(training)[1]),
+      "testing"=c(dim(testing)[2],dim(testing)[1])
+     )
 ```
 
 ## Variable selection
-First we eliminate the variable which are indices or represent information that we can't use as predictors.
+First we eliminate the six first variables which are not relevant as predictors, like X (row index), the user_name and the 3 timestamp variables.
 ```{r sel_1}
-training <- training[,-c(1:6)]
+training <- training[,-c(1:5)]
 ```
 
 Second we eliminate the variables with more than 90% of NAs.
@@ -57,18 +56,16 @@ naInd <- which(naCols/nbRows>0.9)
 training <- training[,-naInd]
 ```
 
-Finally, we check for Near Zero Variables. But as we can see, there are no NZV after our 2 first cleaning steps.
+Finally, we check for Near Zero Variables. The only NZV after our 2 first cleaning steps is the variable new_window.
 ```{r sel_3}
 nzv <- nearZeroVar(training, saveMetrics=TRUE)$nzv
 training <- training[,!nzv]
-sum(nzv)
+names(training)[nzv]
 ```
 
 The training data set is now composed of 54 variables, the class variable and 53 predictors (see Annex **Data selection** to check out the list of these variables).
 ```{r train_stat}
-kable(rbind(c("Observations","Variables"),
-            dim(training)),
-      format = "latex")
+dim(training)[2]
 ```
 # Predictive model
 For model selection, several algorithms were used as trees, generalized linear model, random forest and boosting with trees. Random forest and boosting with trees were clearly the best models as the **in sample errors** were far lower than other models. Finally Random forest was the best predictive model on the training set. 
