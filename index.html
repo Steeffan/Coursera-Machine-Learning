@@ -84,32 +84,32 @@ img {
 training &lt;- monitor[inTrain, ]
 testing &lt;- monitor[-inTrain, ]</code></pre>
 <p>The original data set has 160 variables and 19.622 observations. The training set has 11.776 observations and the test set has 7.846 observations.</p>
-<pre class="r"><code>kable(rbind(c(&quot;set&quot;,&quot;Observations&quot;,&quot;Variables&quot;),
-            c(&quot;monitor&quot;,dim(monitor)),
-            c(&quot;training&quot;,dim(training)),
-            c(&quot;testing&quot;,dim(testing))),
-      format = &quot;latex&quot;)</code></pre>
-
+<pre class="r"><code>rbind(&quot;monitor&quot;=c(&quot;variables&quot;=dim(monitor)[2],&quot;observations&quot;=dim(monitor)[1]),
+      &quot;training&quot;=c(dim(training)[2],dim(training)[1]),
+      &quot;testing&quot;=c(dim(testing)[2],dim(testing)[1])
+     )</code></pre>
+<pre><code>##          variables observations
+## monitor        160        19622
+## training       160        11776
+## testing        160         7846</code></pre>
 </div>
 <div id="variable-selection" class="section level2">
 <h2>Variable selection</h2>
-<p>First we eliminate the variable which are indices or represent information that we can’t use as predictors.</p>
-<pre class="r"><code>training &lt;- training[,-c(1:6)]</code></pre>
+<p>First we eliminate the six first variables which are not relevant as predictors, like X (row index), the user_name and the 3 timestamp variables.</p>
+<pre class="r"><code>training &lt;- training[,-c(1:5)]</code></pre>
 <p>Second we eliminate the variables with more than 90% of NAs.</p>
 <pre class="r"><code>nbRows &lt;- nrow(training)
 naCols &lt;- data.frame(nb=sapply(training, function(x) sum(is.na(x))))
 naInd &lt;- which(naCols/nbRows&gt;0.9)
 training &lt;- training[,-naInd]</code></pre>
-<p>Finally, we check for Near Zero Variables. But as we can see, there are no NZV after our 2 first cleaning steps.</p>
+<p>Finally, we check for Near Zero Variables. The only NZV after our 2 first cleaning steps is the variable new_window.</p>
 <pre class="r"><code>nzv &lt;- nearZeroVar(training, saveMetrics=TRUE)$nzv
 training &lt;- training[,!nzv]
-sum(nzv)</code></pre>
-<pre><code>## [1] 0</code></pre>
+names(training)[nzv]</code></pre>
+<pre><code>## [1] &quot;num_window&quot;</code></pre>
 <p>The training data set is now composed of 54 variables, the class variable and 53 predictors (see Annex <strong>Data selection</strong> to check out the list of these variables).</p>
-<pre class="r"><code>kable(rbind(c(&quot;Observations&quot;,&quot;Variables&quot;),
-            dim(training)),
-      format = &quot;latex&quot;)</code></pre>
-
+<pre class="r"><code>dim(training)[2]</code></pre>
+<pre><code>## [1] 54</code></pre>
 </div>
 </div>
 <div id="predictive-model" class="section level1">
