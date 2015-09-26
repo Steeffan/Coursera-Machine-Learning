@@ -68,19 +68,20 @@ img {
 
 <div id="executive-summary" class="section level1">
 <h1>Executive Summary</h1>
-<p>In this study, we work on the data from the project <a href="http://groupware.les.inf.puc-rio.br/har">linked phrase</a> that comprises measures from activity monitors (as accelerometers on the belt, forearm, arm, and dumbell) of 6 participants during exercise. They were asked to perform barbell lifts correctly and incorrectly in 5 different ways and the activity quality of the exercise was classified in a categorical variable of 5 values.</p>
-<p>We are interested in building a model to predict the manner in which they did the exercise using all the other available measures as potential predicitive varriables. In this document, we will explain how we prepare the data, our model selection and cross-validation method. We will also give a confidence interval of the expected out of sample error.</p>
+<p>In this study, we work on the data from the project <a href="http://groupware.les.inf.puc-rio.br/har">Human Activity Recognition</a> that comprises measures from activity monitors (as accelerometers on the belt, forearm, arm, and dumbell) of 6 participants during exercise. They were asked to perform barbell lifts correctly and incorrectly in 5 different ways and the activity quality of the exercise was classified in a categorical variable of 5 values.</p>
+<p>We are interested in building a model to predict the manner in which they did the exercise using the measures of the activity monitors as predicitive variables. In this document, we will explain how we prepare the data, our model selection and cross-validation method. We will also give a confidence interval of the expected out of sample error.</p>
 </div>
 <div id="data-preparation" class="section level1">
 <h1>Data preparation</h1>
-<div id="load-data" class="section level2">
-<h2>Load data</h2>
-<p>We load the input test data set. We assign as NA the values <em>NA</em>, <em>#DIV/0!</em> and the missing values.</p>
+<p>Before working on the model, we load the data, we split the data set in a training set and a test set and we select the variables to keep the most relevant ones.</p>
+<div id="data-loading" class="section level2">
+<h2>Data loading</h2>
+<p>We load the <a href="https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv">original data set</a>. We assign as NA the values <em>NA</em>, <em>#DIV/0!</em> and the missing values.</p>
 <pre class="r"><code>monitor &lt;- read.csv(&quot;pml-training.csv&quot;, na.strings = c(&quot;NA&quot;,&quot;#DIV/0!&quot;,&quot;&quot;))</code></pre>
 </div>
 <div id="data-splitting" class="section level2">
 <h2>Data splitting</h2>
-<p>Before working on data, we split our training set in 2 partitions, leaving 60% of the data for building and tuning our prediction model (training dataframe) and 40% of the data for evaluating our model and estimating the out of sample error (testing dataframe).</p>
+<p>Before working on data, we split our training set in 2 partitions, leaving 60% of the data for building and tuning our prediction model and 40% of the data for evaluating our model and estimating the out of sample error.</p>
 <pre class="r"><code>inTrain &lt;- createDataPartition(y=monitor$classe, p=0.6, list=FALSE)
 training &lt;- monitor[inTrain, ]
 testing &lt;- monitor[-inTrain, ]</code></pre>
@@ -96,7 +97,7 @@ testing &lt;- monitor[-inTrain, ]</code></pre>
 </div>
 <div id="variable-selection" class="section level2">
 <h2>Variable selection</h2>
-<p>First we eliminate the six first variables which are not relevant as predictors, like X (row index), the user_name and the 3 timestamp variables.</p>
+<p>First we eliminate the 5 first variables which are not relevant as predictors, like X (row index), the user_name and the 3 timestamp variables.</p>
 <pre class="r"><code>training &lt;- training[,-c(1:5)]</code></pre>
 <p>Second we eliminate the variables with more than 90% of NAs.</p>
 <pre class="r"><code>nbRows &lt;- nrow(training)
@@ -108,26 +109,27 @@ training &lt;- training[,-naInd]</code></pre>
 training &lt;- training[,!nzv]
 names(training)[nzv]</code></pre>
 <pre><code>## [1] &quot;num_window&quot;</code></pre>
-<p>The training data set is now composed of 54 variables, the class variable and 53 predictors (see Annex <strong>Data selection</strong> to check out the list of these variables).</p>
+<p>The training data set is now composed of 54 variables, the class variable and 53 predictors (see the appendix <strong>Data selection</strong> to check out the list of these variables).</p>
 <pre class="r"><code>dim(training)[2]</code></pre>
 <pre><code>## [1] 54</code></pre>
 </div>
 </div>
 <div id="predictive-model" class="section level1">
 <h1>Predictive model</h1>
-<p>For model selection, several algorithms were used as trees, generalized linear model, random forest and boosting with trees. Random forest and boosting with trees were clearly the best models as the <strong>in sample errors</strong> were far lower than other models. Finally Random forest was the best predictive model on the training set.</p>
+<p>During this phase of the project, we only worked with the training data set and we did comparisons of the different models and the cross-validation methods based on the <strong>in sample error</strong>.</p>
+<div id="model-selection" class="section level2">
+<h2>Model selection</h2>
+<p>For model selection, several algorithms were used as trees, generalized linear model, random forest and boosting with trees. Random forest and boosting with trees were clearly the best models as the in sample error were far lower than other models. Finally Random forest was the best predictive model on the training set.</p>
+</div>
 <div id="cross-validation" class="section level2">
 <h2>Cross-validation</h2>
-<p>Cross-Validation is used for smoothing predictions and for giving a better estimation of the out of sample error. Random forest predictive models are built on cross-validation principle as it generates a lot of model by sampling the variables and by repeating the process by sampling the data set.<br />Different cross-validation methods were used as bootstrap, k-folds and cross-validation. There were no clear evidence of the best strategy so default method for random forest in caret was used, bootstrap with 25 repetitions.</p>
+<p>Cross-Validation is used for smoothing predictions and for giving a better estimation of the out of sample error. Random forest predictive models are built on cross-validation principle as it generates a lot of model by sampling the variables and by repeating the process by sampling the data set.<br />Different cross-validation methods were used as bootstrap, k-folds and cross-validation. There were no clear evidence of the best strategy so the default method for random forest in caret was used, bootstrap with 25 repetitions.</p>
 </div>
 <div id="random-forest-model" class="section level2">
 <h2>Random Forest Model</h2>
-<p>The predictive model is built using all the other variables. It looks very robust with an accuracy of <strong>99.4%</strong> and an in sample error of <strong>0.6%</strong>.</p>
-<pre class="r"><code>modelFitRF &lt;- train(classe~.,data=training,method=&quot;rf&quot;)</code></pre>
-<pre><code>## Loading required package: randomForest
-## randomForest 4.6-10
-## Type rfNews() to see new features/changes/bug fixes.</code></pre>
-<pre class="r"><code>modelFitRF</code></pre>
+<p>The predictive model is built using all the 53 variables. It looks very robust with an accuracy of <strong>99.4%</strong> and an in sample error of <strong>0.6%</strong>.</p>
+<pre class="r"><code>modelFitRF &lt;- train(classe~.,data=training,method=&quot;rf&quot;)
+modelFitRF</code></pre>
 <pre><code>## Random Forest 
 ## 
 ## 11776 samples
@@ -147,14 +149,12 @@ names(training)[nzv]</code></pre>
 ## Accuracy was used to select the optimal model using  the largest value.
 ## The final value used for the model was mtry = 27.</code></pre>
 </div>
-<div id="out-of-sample-error-prediction" class="section level2">
-<h2>Out of sample error prediction</h2>
-<p>To predict the out of sample error, we apply the predictive model on the test set.<br />The expected accuracy is estimated at 99.5% ([99.3%,99.6%]), which means that the out of sample error is expected at <strong>0.5% ([0.4%-0.7%])</strong>. The out of sample error is very closed (and surprisingly even better) to the in of sample error, which indicates that there is no overfitting issue in this model.</p>
-<pre class="r"><code>predictionsRF &lt;- predict(modelFitRF,newdata=testing)</code></pre>
-<pre><code>## Loading required package: randomForest
-## randomForest 4.6-10
-## Type rfNews() to see new features/changes/bug fixes.</code></pre>
-<pre class="r"><code>confusionMatrix(predictionsRF, testing$class)</code></pre>
+</div>
+<div id="out-of-sample-error-prediction" class="section level1">
+<h1>Out of sample error prediction</h1>
+<p>To predict the out of sample error, we apply the predictive model on the test set.<br />The expected accuracy is estimated at 99.5% ([99.3%,99.6%]), which means that the out of sample error is expected at <strong>0.5% ([0.4%-0.7%])</strong>. The out of sample error is very closed (and surprisingly even better) to the in sample error, which indicates that there is no overfitting issue in this model.</p>
+<pre class="r"><code>predictionsRF &lt;- predict(modelFitRF,newdata=testing)
+confusionMatrix(predictionsRF, testing$class)</code></pre>
 <pre><code>## Confusion Matrix and Statistics
 ## 
 ##           Reference
@@ -187,10 +187,9 @@ names(training)[nzv]</code></pre>
 ## Detection Prevalence    0.285    0.193    0.177    0.161    0.184
 ## Balanced Accuracy       0.999    0.995    0.995    0.992    0.999</code></pre>
 </div>
-</div>
 <div id="conclusion" class="section level1">
 <h1>Conclusion</h1>
-<p>We have built a very robust predictive model for activity quality using random forest with an <strong>expected out of sample error of 0.5% ([0.4%-0.7%])</strong>.</p>
+<p>We have built a very robust predictive model for activity quality based on activity monitors measures using random forest with an <strong>expected out of sample error of 0.5% ([0.4%-0.7%])</strong>.</p>
 </div>
 <div id="appendix" class="section level1">
 <h1>Appendix</h1>
