@@ -1,7 +1,7 @@
 ---
 title: "Machine Learning Project - Predicting activity quality"
 fontsize: 5pt
-date: "September 21, 2015"
+date: "October 21, 2015"
 output: html_document
 ---
 ```{r setenv, echo=FALSE, results='hide', warning=FALSE, message=FALSE}
@@ -21,7 +21,7 @@ In this study, we work on the data from the project [Human Activity Recognition]
 We are interested in building a model to predict the manner in which they did the exercise using the measures of the activity monitors as predicitive variables. In this document, we will explain how we prepare the data, our model selection and cross-validation method. We will also give a confidence interval of the expected out of sample error.
 
 # Data preparation
-Before working on the model, we load the data, we split the data set in a training set and a test set and we select the variables to keep the most relevant ones.  
+Before working on the model, we load the data, we split it into a training set and a test set and we select the variables to keep the most relevant ones.  
 
 ## Data loading
 We load the [original data set](https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv). We assign as NA the values *NA*, *#DIV/0!* and the missing values.
@@ -50,11 +50,11 @@ First we eliminate the 5 first variables which are not relevant as predictors, l
 training <- training[,-c(1:5)]
 ```
 
-Second we eliminate the variables with more than 90% of NAs.
+Second we eliminate the variables where majority of data is missing (more than 50% of NAs).
 ```{r sel_2}
 nbRows <- nrow(training)
 naCols <- data.frame(nb=sapply(training, function(x) sum(is.na(x))))
-naInd <- which(naCols/nbRows>0.9)
+naInd <- which(naCols/nbRows>0.5)
 training <- training[,-naInd]
 ```
 
@@ -70,7 +70,7 @@ The training data set is now composed of 54 variables, the class variable and 53
 dim(training)[2]
 ```
 # Predictive model
-During this phase of the project, we only worked with the training data set and we did comparisons of the different models and the cross-validation methods based on the **in sample error**.  
+During this phase of the project, we have only worked with the training data set and we did comparisons of the different models and the cross-validation methods based on the **in sample error**.
 
 ## Model selection
 For model selection, several algorithms were used as trees, generalized linear model, random forest and boosting with trees. Random forest and boosting with trees were clearly the best models as the in sample error were far lower than other models. Finally Random forest was the best predictive model on the training set.
@@ -88,14 +88,14 @@ modelFitRF
 
 # Out of sample error prediction
 To predict the out of sample error, we apply the predictive model on the test set.  
-The expected accuracy is estimated at 99.5% ([99.3%,99.6%]), which means that the out of sample error is expected at **0.5% ([0.4%-0.7%])**. The out of sample error is very closed (and surprisingly even better) to the in sample error, which indicates that there is no overfitting issue in this model.
+The expected accuracy is estimated at 99.5% (95% CI : [99.3%,99.6%]), which means that the out of sample error is expected at **0.5% (95% CI : [0.4%-0.7%])**. The out of sample error is very closed to the in sample error, which indicates that there is no overfitting issue in this model.
 ```{r pred, warning=FALSE, message=FALSE}
 predictionsRF <- predict(modelFitRF,newdata=testing)
 confusionMatrix(predictionsRF, testing$class)
 ```
 
 # Conclusion
-We have built a very robust predictive model for activity quality based on activity monitors measures using random forest with an **expected out of sample error of 0.5% ([0.4%-0.7%])**.
+We have built a very robust predictive model for activity quality based on activity monitors measures using random forest with an **expected out of sample error of 0.5% (95% CI : [0.4%-0.7%])**.
 
 # Appendix
 

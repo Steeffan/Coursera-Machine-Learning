@@ -9,7 +9,7 @@
 <meta name="generator" content="pandoc" />
 
 
-<meta name="date" content="2015-09-21" />
+<meta name="date" content="2015-10-21" />
 
 <title>Machine Learning Project - Predicting activity quality</title>
 
@@ -62,7 +62,7 @@ img {
 
 <div id="header">
 <h1 class="title">Machine Learning Project - Predicting activity quality</h1>
-<h4 class="date"><em>September 21, 2015</em></h4>
+<h4 class="date"><em>October 21, 2015</em></h4>
 </div>
 
 
@@ -73,7 +73,7 @@ img {
 </div>
 <div id="data-preparation" class="section level1">
 <h1>Data preparation</h1>
-<p>Before working on the model, we load the data, we split the data set in a training set and a test set and we select the variables to keep the most relevant ones.</p>
+<p>Before working on the model, we load the data, we split it into a training set and a test set and we select the variables to keep the most relevant ones.</p>
 <div id="data-loading" class="section level2">
 <h2>Data loading</h2>
 <p>We load the <a href="https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv">original data set</a>. We assign as NA the values <em>NA</em>, <em>#DIV/0!</em> and the missing values.</p>
@@ -99,10 +99,10 @@ testing &lt;- monitor[-inTrain, ]</code></pre>
 <h2>Variable selection</h2>
 <p>First we eliminate the 5 first variables which are not relevant as predictors, like X (row index), the user_name and the 3 timestamp variables.</p>
 <pre class="r"><code>training &lt;- training[,-c(1:5)]</code></pre>
-<p>Second we eliminate the variables with more than 90% of NAs.</p>
+<p>Second we eliminate the variables where majority of data is missing (more than 50% of NAs).</p>
 <pre class="r"><code>nbRows &lt;- nrow(training)
 naCols &lt;- data.frame(nb=sapply(training, function(x) sum(is.na(x))))
-naInd &lt;- which(naCols/nbRows&gt;0.9)
+naInd &lt;- which(naCols/nbRows&gt;0.5)
 training &lt;- training[,-naInd]</code></pre>
 <p>Finally, we check for Near Zero Variables. The only NZV after our 2 first cleaning steps is the variable new_window.</p>
 <pre class="r"><code>nzv &lt;- nearZeroVar(training, saveMetrics=TRUE)$nzv
@@ -116,7 +116,7 @@ names(training)[nzv]</code></pre>
 </div>
 <div id="predictive-model" class="section level1">
 <h1>Predictive model</h1>
-<p>During this phase of the project, we only worked with the training data set and we did comparisons of the different models and the cross-validation methods based on the <strong>in sample error</strong>.</p>
+<p>During this phase of the project, we have only worked with the training data set and we did comparisons of the different models and the cross-validation methods based on the <strong>in sample error</strong>.</p>
 <div id="model-selection" class="section level2">
 <h2>Model selection</h2>
 <p>For model selection, several algorithms were used as trees, generalized linear model, random forest and boosting with trees. Random forest and boosting with trees were clearly the best models as the in sample error were far lower than other models. Finally Random forest was the best predictive model on the training set.</p>
@@ -152,7 +152,7 @@ modelFitRF</code></pre>
 </div>
 <div id="out-of-sample-error-prediction" class="section level1">
 <h1>Out of sample error prediction</h1>
-<p>To predict the out of sample error, we apply the predictive model on the test set.<br />The expected accuracy is estimated at 99.5% ([99.3%,99.6%]), which means that the out of sample error is expected at <strong>0.5% ([0.4%-0.7%])</strong>. The out of sample error is very closed (and surprisingly even better) to the in sample error, which indicates that there is no overfitting issue in this model.</p>
+<p>To predict the out of sample error, we apply the predictive model on the test set.<br />The expected accuracy is estimated at 99.5% (95% CI : [99.3%,99.6%]), which means that the out of sample error is expected at <strong>0.5% (95% CI : [0.4%-0.7%])</strong>. The out of sample error is very closed to the in sample error, which indicates that there is no overfitting issue in this model.</p>
 <pre class="r"><code>predictionsRF &lt;- predict(modelFitRF,newdata=testing)
 confusionMatrix(predictionsRF, testing$class)</code></pre>
 <pre><code>## Confusion Matrix and Statistics
@@ -189,7 +189,7 @@ confusionMatrix(predictionsRF, testing$class)</code></pre>
 </div>
 <div id="conclusion" class="section level1">
 <h1>Conclusion</h1>
-<p>We have built a very robust predictive model for activity quality based on activity monitors measures using random forest with an <strong>expected out of sample error of 0.5% ([0.4%-0.7%])</strong>.</p>
+<p>We have built a very robust predictive model for activity quality based on activity monitors measures using random forest with an <strong>expected out of sample error of 0.5% (95% CI : [0.4%-0.7%])</strong>.</p>
 </div>
 <div id="appendix" class="section level1">
 <h1>Appendix</h1>
